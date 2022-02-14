@@ -1,0 +1,71 @@
+create database db;
+use db;
+
+create table author(authorId int primary key,
+name varchar(25), email varchar(25), phone_number varchar(10), status varchar(20));
+select * from author;
+
+create table language(languageId int primary key,
+name varchar(20));
+select * from language;
+
+create table publisher(publisherId int primary key,
+name varchar(25), address varchar(25));
+select * from publisher;
+
+
+create table member(memberId int primary key,
+name varchar(25), branch_code varchar(20), rollNo int, 
+phone_number varchar(10), email_id varchar(25), 
+date_Of_Join date, status varchar(20));
+select * from member;
+
+create table book(bookId int primary key,
+title varchar(25), languageId int, mrp int, publisherId int, 
+published_date date, volume varchar(20), status varchar(20),
+foreign key(languageId) references language(languageId),
+foreign key(publisherId) references publisher(publisherId)
+);
+select * from book;
+
+create table bookIssue(issueId  int primary key not null,
+dateOfIssue date, bookId int,  memberId int, date_of_return date, 
+status varchar(20),
+foreign key(bookId) references book(bookId),
+foreign key(memberId) references member(memberId));
+select * from bookIssue;
+
+create table bookReturn(issueId int primary key,
+date_of_return date, lateDays int, lateFee int,
+foreign key(issueId) references bookIssue(issueId));
+select * from bookReturn;
+
+create table lateFeeRule(from_days int, to_days int, amount int,
+primary key(from_days, to_days));
+select * from lateFeeRule;
+
+
+create table bookAuthor(bookId int, authorId int, 
+primary key(bookId, authorId),
+foreign key(bookId) references book(bookId),
+foreign key(authorId) references author(authorId));
+select * from bookAuthor;
+
+show tables;
+
+
+select count(*) from AUTHOR where name='athul';
+
+select name, count(bookId) from book, publisher where publisher.publisherId=book.bookId group by(name);
+
+delimiter //
+create procedure transaction1(IN bookid int)
+begin
+declare issueid int;
+select issueId into issueid from bookIssue
+where bookId=bookid;
+update bookIssue set status='Returned'
+where bookId=bookid;
+insert into bookReturn values(issueid, sysdate(), 10 ,80);
+end //
+call transaction1(2);
